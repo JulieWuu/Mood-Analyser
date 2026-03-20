@@ -5,6 +5,6 @@ Mood level is distinguished by the colour of text in each cell, and the cells ar
 Results can be visualised by mood level in different time scales, or by word frequencies.
 
 ### Libraries used
-`openpyxl` to read Excel files into Python dictionaries, <br>
+`openpyxl` to read Excel files into Python dictionaries <br>
 `tinydb` for practising the usage of databases (I do realise it's quite unnecessary in this case) <br>
-`matplotlib` and `numpy` for plotting.
+`matplotlib` and `numpy` for plotting
