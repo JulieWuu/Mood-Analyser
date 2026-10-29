@@ -4,6 +4,7 @@ import re
 
 from openpyxl import load_workbook
 from matplotlib import pyplot as plt
+import matplotlib.colors as mcolors
 from Excel_to_Json import get_next_date
 from TinyDB_of_Mood import DONT_CARE_LIST
 
@@ -52,7 +53,7 @@ def read_excel(path):
 
     return pd.DataFrame(data_structure)
 
-def plot_mood(df, axis=""):
+def plot_mood_trend(df, axis=""):
     if not axis: average_mood = df['mood']
     else: average_mood = df.groupby(axis)['mood'].mean()
 
@@ -62,6 +63,19 @@ def plot_mood(df, axis=""):
     ax.set_ylim(np.floor(average_mood.min() * 2.5) * .4,1.01)
     ax.plot(average_mood)
     plt.savefig(f"Mood_by_{axis}.png")
+    plt.show()
+
+def plot_mood_grid(df):
+    mood_matrix = df.pivot(index="month", columns="date", values="mood")
+    plt.figure(figsize=(10, 4))
+    cmap = mcolors.ListedColormap(["orange", "green", "blue"])
+    norm = mcolors.BoundaryNorm([0.0, 0.4, 0.7, 1.2], cmap.N)
+    plt.xticks(ticks=np.arange(len(mood_matrix.columns)), labels=mood_matrix.columns)
+    plt.yticks(ticks=np.arange(len(mood_matrix.index)), labels=mood_matrix.index)
+    plt.xlabel("Date")
+    plt.ylabel("Month")
+    plt.imshow(mood_matrix.values, cmap=cmap, norm=norm)
+    plt.savefig("Mood_Grid_View.png")
     plt.show()
 
 def plot_words_by_count(df, count_boundary=(10, 400)):
@@ -97,4 +111,4 @@ def plot_words_by_count(df, count_boundary=(10, 400)):
 
 if __name__ == "__main__":
     mood_df = read_excel("EVERYDAYlog.xlsx")
-    plot_mood(mood_df, 'day')
+    plot_mood_grid(mood_df)
