@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import re
 
 from openpyxl import load_workbook
@@ -51,10 +52,16 @@ def read_excel(path):
 
     return pd.DataFrame(data_structure)
 
-def plot_mood(df, axis : str):
+def plot_mood(df, axis=""):
     if not axis: average_mood = df['mood']
     else: average_mood = df.groupby(axis)['mood'].mean()
-    plt.plot(average_mood)
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.spines['top'].set_visible(False)
+    ax.set_title(f"Average mood by {axis}" if axis else "Mood score per day")
+    ax.set_ylim(np.floor(average_mood.min() * 2.5) * .4,1.01)
+    ax.plot(average_mood)
+    plt.savefig(f"Mood_by_{axis}.png")
     plt.show()
 
 def plot_words_by_count(df, count_boundary=(10, 400)):
@@ -68,24 +75,26 @@ def plot_words_by_count(df, count_boundary=(10, 400)):
                 count_map[w][int(1 / df["mood"][idx])] += 1
 
     filtered_map = {k : v for k, v in count_map.items() if count_boundary[0] <= v[0] <= count_boundary[1]}
-    rank_by_count = {k : v for k, v in sorted(filtered_map.items(), key=lambda item: item[1][0])}
 
     fig, [ax1, ax2] = plt.subplots(nrows=1, ncols=2, figsize=(15, 8))
-    x = list(rank_by_count.keys())
 
+    rank_by_count = {k: v for k, v in sorted(filtered_map.items(), key=lambda item: item[1][0])}
+    x1 = list(rank_by_count.keys())
     ax1.set_title("Word by number of appearances")
-    ax1.barh(x, [c[3] for c in rank_by_count.values()], color='orange')
-    ax1.barh(x, [c[2] for c in rank_by_count.values()], left=[c[3] for c in rank_by_count.values()], color='green')
-    ax1.barh(x, [c[1] for c in rank_by_count.values()], left=[c[2]+c[3] for c in rank_by_count.values()], color='blue')
+    ax1.barh(x1, [c[3] for c in rank_by_count.values()], color='orange')
+    ax1.barh(x1, [c[2] for c in rank_by_count.values()], left=[c[3] for c in rank_by_count.values()], color='green')
+    ax1.barh(x1, [c[1] for c in rank_by_count.values()], left=[c[2]+c[3] for c in rank_by_count.values()], color='blue')
 
     rank_by_happiness = {k: v for k, v in sorted(filtered_map.items(), key=lambda item: (item[1][1] / item[1][0]))}
+    x2 = list(rank_by_happiness.keys())
     ax2.set_title("Word by percentage of happiness")
-    ax2.barh(x, [c[3] / c[0] for c in rank_by_happiness.values()], color='orange')
-    ax2.barh(x, [c[2] / c[0] for c in rank_by_happiness.values()], left=[c[3] / c[0] for c in rank_by_happiness.values()], color='green')
-    ax2.barh(x, [c[1] / c[0] for c in rank_by_happiness.values()], left=[(c[2] + c[3]) / c[0] for c in rank_by_happiness.values()], color='blue')
+    ax2.barh(x2, [c[3] / c[0] for c in rank_by_happiness.values()], color='orange')
+    ax2.barh(x2, [c[2] / c[0] for c in rank_by_happiness.values()], left=[c[3] / c[0] for c in rank_by_happiness.values()], color='green')
+    ax2.barh(x2, [c[1] / c[0] for c in rank_by_happiness.values()], left=[(c[2] + c[3]) / c[0] for c in rank_by_happiness.values()], color='blue')
+
+    plt.savefig("Word_plot.png")
     plt.show()
 
 if __name__ == "__main__":
     mood_df = read_excel("EVERYDAYlog.xlsx")
-    # plot_mood(mood_df, 'day')
-    plot_words_by_count(mood_df)
+    plot_mood(mood_df, 'day')
